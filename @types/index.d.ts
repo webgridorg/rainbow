@@ -29,6 +29,7 @@ type ColorResult = {
     colors: string[];
     inverse: string[];
   };
+  raw: any;
 };
 
 type ColorsResult = {
