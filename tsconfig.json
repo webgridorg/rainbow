@@ -1,5 +1,5 @@
 {
-  "include": ["src", "types"],
+  "include": ["src", "types", "@types/index.d.ts"],
   "compilerOptions": {
     "module": "esnext",
     "lib": ["dom", "esnext"],
@@ -16,5 +16,6 @@
     },
     "jsx": "react",
     "esModuleInterop": true
-  }
+  },
+  "typeRoots": ["./node_modules/@types", "./@types"]
 }

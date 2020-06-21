@@ -1,5 +1,3 @@
-/// <reference types="./index" />
-
 import * as Leonardo from '@adobe/leonardo-contrast-colors';
 import { random as randomColor, contrast } from 'chroma-js';
 import { lighten, darken } from 'polished';
