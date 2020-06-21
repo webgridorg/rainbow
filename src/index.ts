@@ -1,5 +1,5 @@
 import * as Leonardo from '@adobe/leonardo-contrast-colors';
-import { random as randomColor, contrast } from 'chroma-js';
+import { random as randomColor, contrast, scale } from 'chroma-js';
 import { lighten, darken } from 'polished';
 import normalizeColor from 'color-shorthand-hex-to-six-digit';
 import flatten from 'lodash.flatten';
@@ -115,48 +115,51 @@ const getRandomColor = (
   options: GeneratorOptions,
   useInverseValue: boolean = false
 ): ColorResult[] => {
-  const { steps, bg: isBgGradient, text: isTextGradient } = options.gradient;
-  const floatSteps = steps / 10;
-  const { base: bg, theme } = generateTheme({
+  const {
+    gradient: { steps, bg: isBgGradient, text: isTextGradient },
+  } = options;
+  const { base: bg, theme, raw } = generateTheme({
     base: { color },
   });
 
   const text =
-    getValidContrast(bg, useInverseValue ? theme.inverse : theme.colors)?.[0] ??
-    useInverseValue
-      ? theme.inverse[4]
-      : theme.colors[4];
+    getValidContrast(bg, useInverseValue ? theme.inverse : theme.colors)?.[0] ||
+    null;
 
   const value: ColorResult = {
     bg,
     theme,
     text,
+    raw,
   };
 
   const invertedValue: ColorResult = {
     bg: text,
     theme,
     text: bg,
+    raw,
   };
 
-  const gradientFn = useInverseValue ? darken : lighten;
-
   if (isBgGradient) {
-    value.bg = Array.from({ length: steps }, (_, index) =>
-      gradientFn(floatSteps * (index + 1), value.bg as string)
-    );
-    invertedValue.bg = Array.from({ length: steps }, (_, index) =>
-      gradientFn(floatSteps * (index + 1), invertedValue.bg as string)
-    );
+    value.bg = scale([
+      value.bg as string,
+      darken(0.2, value.bg as string),
+    ]).colors(steps);
+    invertedValue.bg = scale([
+      invertedValue.bg as string,
+      lighten(0.2, invertedValue.bg as string),
+    ]).colors(steps);
   }
 
-  if (isBgGradient) {
-    value.text = Array.from({ length: steps }, (_, index) =>
-      gradientFn(floatSteps * (index + 1), value.text as string)
-    );
-    invertedValue.text = Array.from({ length: steps }, (_, index) =>
-      gradientFn(floatSteps * (index + 1), invertedValue.text as string)
-    );
+  if (isTextGradient) {
+    value.text = scale([
+      value.text as string,
+      lighten(0.2, value.text as string),
+    ]).colors(steps);
+    invertedValue.text = scale([
+      invertedValue.text as string,
+      darken(0.2, invertedValue.text as string),
+    ]).colors(steps);
   }
 
   return [value, invertedValue];
@@ -169,24 +172,36 @@ const getRandomColor = (
 const defaultGeneratorOptions: GeneratorOptions = {
   gradient: {
     steps: 2,
-    bg: true,
+    bg: false,
     text: false,
   },
 };
+
 const randomColors = (
   defaultOptions: GeneratorOptions = defaultGeneratorOptions
 ): ColorsResult => {
   const options = { ...defaultGeneratorOptions, ...defaultOptions };
-  const [pastel, invertedPastel] = getRandomColor(
+  let [pastel, invertedPastel] = getRandomColor(
     getRandomPastelColor(),
     options
   );
-  const [light, invertedLight] = getRandomColor(getRandomLightColor(), options);
-  const [dark, invertedDark] = getRandomColor(
+  while (!pastel.text || !invertedPastel.text) {
+    [pastel, invertedPastel] = getRandomColor(getRandomPastelColor(), options);
+  }
+
+  let [light, invertedLight] = getRandomColor(getRandomLightColor(), options);
+  while (!light.text || !invertedLight.text) {
+    [light, invertedLight] = getRandomColor(getRandomLightColor(), options);
+  }
+
+  let [dark, invertedDark] = getRandomColor(
     getRandomDarkColor(),
     options,
     true
   );
+  while (!dark.text || !invertedDark.text) {
+    [dark, invertedDark] = getRandomColor(getRandomDarkColor(), options, true);
+  }
 
   return {
     pastel,

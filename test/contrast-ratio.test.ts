@@ -6,7 +6,8 @@ const logger = (
   prefixText: string = '',
   bgColor: string,
   textColor: string,
-  text: number | string = 'Test'
+  text: number | string = 'Test',
+  ...rest
 ) => {
   console.log(
     '\n',
@@ -17,7 +18,17 @@ const logger = (
     textColor,
     '\n',
     'ratio',
-    chalk.bgHex(bgColor).bold(chalk.hex(textColor).bold(`  ${text}  `))
+    chalk.bgHex(bgColor).bold(chalk.hex(textColor).bold(`  ${text}  `)),
+    ...rest
+  );
+};
+
+const gradientLogger = (prefixText: string, colors: string[]) => {
+  console.log(
+    '\n',
+    'gradient',
+    prefixText,
+    ...colors.map(item => chalk.bgHex(item).bold('  '))
   );
 };
 
@@ -26,9 +37,15 @@ describe('Check color contrast ratio', () => {
 
   it('should be valid pastel color', () => {
     {
-      const { bg, text } = colors.pastel;
+      const { bg, text, raw } = colors.pastel;
       const ratio = contrast(bg as string, text as string);
-      logger('pastel', bg as string, text as string, ratio);
+      logger(
+        'pastel',
+        bg as string,
+        text as string,
+        ratio,
+        JSON.stringify(raw.values.map(item => item.value))
+      );
       expect(ratio).toBeGreaterThan(4.45);
     }
 
@@ -70,5 +87,34 @@ describe('Check color contrast ratio', () => {
       logger('dark:lightmode', bg as string, text as string, ratio);
       expect(ratio).toBeGreaterThan(4.45);
     }
+  });
+});
+
+describe('Gradient colors', () => {
+  it('should be generate gradient colors', () => {
+    const colors = randomColors({
+      gradient: {
+        bg: true,
+        text: true,
+      },
+    });
+    const { bg, text } = colors.light;
+    gradientLogger('bg', bg as string[]);
+    gradientLogger('text', text as string[]);
+    expect(true).toBeTruthy();
+  });
+
+  it('should be generate 5 gradients colors', () => {
+    const colors = randomColors({
+      gradient: {
+        steps: 5,
+        bg: true,
+        text: true,
+      },
+    });
+    const { bg, text } = colors.light;
+    gradientLogger('bg', bg as string[]);
+    gradientLogger('text', text as string[]);
+    expect(true).toBeTruthy();
   });
 });
