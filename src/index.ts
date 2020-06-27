@@ -141,25 +141,32 @@ const getRandomColor = (
   };
 
   if (isBgGradient) {
-    value.bg = scale([
-      value.bg as string,
-      darken(0.2, value.bg as string),
-    ]).colors(steps);
-    invertedValue.bg = scale([
-      invertedValue.bg as string,
-      lighten(0.2, invertedValue.bg as string),
-    ]).colors(steps);
+    const bg = value.bg as string;
+    if (bg) {
+      value.bg = scale([bg, darken(0.2, bg)]).colors(steps);
+    }
+
+    const invertedBg = invertedValue.bg as string;
+    if (invertedBg) {
+      invertedValue.bg = scale([invertedBg, lighten(0.2, invertedBg)]).colors(
+        steps
+      );
+    }
   }
 
   if (isTextGradient) {
-    value.text = scale([
-      value.text as string,
-      lighten(0.2, value.text as string),
-    ]).colors(steps);
-    invertedValue.text = scale([
-      invertedValue.text as string,
-      darken(0.2, invertedValue.text as string),
-    ]).colors(steps);
+    const text = value.text as string;
+    if (text) {
+      value.text = scale([text, lighten(0.2, text)]).colors(steps);
+    }
+
+    const invertedText = invertedValue.text as string;
+    if (invertedText) {
+      invertedValue.text = scale([
+        invertedText,
+        darken(0.2, invertedText),
+      ]).colors(steps);
+    }
   }
 
   return [value, invertedValue];
